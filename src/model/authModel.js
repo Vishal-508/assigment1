@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 const bcrypt=require("bcrypt");
+const { required } = require("joi");
 const authSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -14,14 +15,38 @@ const authSchema = new mongoose.Schema({
         maxLength:264,
         required:true
     },
+    role:{
+        type:String,
+        enum:["user","admin","seller"],
+        required:true,
+        trim:true,
+        maxLength:10,
+        default:"user"
+    },
     password:{
         type:String,
         minLength:6,
         maxLength:128,
         required:true
-    },
+    }
    
 });
+
+authSchema.virtual("addresses",{
+    ref:"address",
+    localField:"_id",
+    foreignField:"user",
+});
+
+
+authSchema.set("toJSON",{
+    virtuals:true
+});
+
+authSchema.set("toObject",{
+    virtuals:true
+})
+
 
 authSchema.pre("save",async function(){
     if(!this.isModified("password")) return this.password;
